@@ -1,7 +1,7 @@
 #!/us/bin/sh
 
-git config --global --unset akjain47
-git config --global --unset ajain707@stanford.edu
+git config --global --unset user.name
+git config --global --unset user.email
 
 gh auth logout
 
