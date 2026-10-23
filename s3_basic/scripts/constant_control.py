@@ -19,7 +19,7 @@ class basicNode(Node):
     def timer_callback(self):
         msg = Twist()
         msg.linear.x=0.2
-        msg.angular.z=0.2
+        msg.angular.z=0.5
         self.hb_pub.publish(msg)
         self.hb_counter += 1
 

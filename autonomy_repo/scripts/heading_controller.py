@@ -11,13 +11,18 @@ from asl_tb3_msgs.msg import TurtleBotControl, TurtleBotState
 class HeadingController(BaseHeadingController):
     def __init__(self):
         super().__init__()
-        self.kp = 2.0
+        self.declare_parameter("kp",2.0)
 
     def compute_control_with_goal(self, state: TurtleBotState, goal: TurtleBotState) -> TurtleBotControl:
         error = wrap_angle(goal.theta - state.theta)
         control = TurtleBotControl()
         control.omega = self.kp * error
         return control
+    
+    @property
+    def kp(self) -> float:
+        return self.get_parameter("kp").value
+        
 
 
 if __name__ == "__main__":
