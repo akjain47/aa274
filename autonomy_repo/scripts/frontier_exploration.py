@@ -9,7 +9,7 @@ from scipy.signal import convolve2d
 from std_msgs.msg import Bool
 
 from asl_tb3_lib.grids import StochOccupancyGrid2D
-from asl_tb3_msgs.msg import TurtleBotState
+from asl_tb3_msgs.msg import TurtleBotState, TurtleBotControl
 
 
 def window_counts(mask, window_size):
@@ -71,6 +71,17 @@ class FrontierExploration(Node):
         self.timer = self.create_timer(1.0, self.select_goal)
         self.get_logger().info("Waiting for /map, /state, and navigator connections")
 
+        self.motor_sub = self.create_subscription(Bool, "/detector_bool", self.detector_callback, 10)
+        self.image_detected = False
+        self.pause = False
+
+    def detector_callback(self, msg: Bool) -> None:
+                # This handles incoming messages from the topic
+            self.image_detected = msg.data
+            if self.image_detected:
+                self.pause = True
+            
+
     def now_seconds(self):
         return self.get_clock().now().nanoseconds * 1e-9
 
@@ -109,7 +120,7 @@ class FrontierExploration(Node):
 
     def select_goal(self):
         """Try frontiers from nearest to farthest; let the navigator find a path."""
-        if self.state is None or self.occupancy is None or self.active_goal is not None:
+        if self.state is None or self.occupancy is None or self.active_goal is not None :
             return
         if (self.goal_pub.get_subscription_count() == 0
                 or self.count_publishers("/nav_success") == 0):
@@ -140,6 +151,9 @@ class FrontierExploration(Node):
                 continue
             if not occupancy.is_free(goal):
                 continue
+            if self.image_detected:
+                print("image detected")
+                goal = current
             self.send_goal(goal)
             return
         # No usable goal: keep listening and try again on the next timer tick.
@@ -147,10 +161,15 @@ class FrontierExploration(Node):
     def send_goal(self, goal):
         current = np.array([self.state.x, self.state.y])
         delta = goal - current
+        print("goal")
+        if self.image_detected:
+            print("image detected")
+    
         command = TurtleBotState(
             x=float(goal[0]), y=float(goal[1]),
             theta=float(np.arctan2(delta[1], delta[0])),
         )
+
         self.active_goal = goal.copy()
         self.goal_pub.publish(command)
         self.get_logger().info(f"Exploring ({goal[0]:.2f}, {goal[1]:.2f})")
