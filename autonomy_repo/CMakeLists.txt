@@ -12,6 +12,8 @@ find_package(ament_cmake REQUIRED)
 install(PROGRAMS
     scripts/perception_controller.py
     scripts/p3_plot.py
+    scripts/navigator.py
+    scripts/frontier_exploration.py
     DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -19,6 +21,8 @@ install(DIRECTORY launch rviz
         DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(frontier_exploration test/test_frontier_exploration.py)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files
